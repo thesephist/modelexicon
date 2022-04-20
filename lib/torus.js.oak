@@ -1,0 +1,51 @@
+// torus.js.oak is an Oak wrapper around Torus
+
+{
+	default: default
+	map: map
+} := import('std')
+
+fn h(tag, args...) {
+	if len(args) {
+		0 -> ?
+		1 -> [children] := args
+		2 -> [classes, children] := args
+		3 -> [classes, attrs, children] := args
+		_ -> [classes, attrs, events, children] := args
+	}
+	classes := classes |> default([])
+	attrs := attrs |> default({})
+	events := events |> default({})
+	children := children |> default([])
+	{
+		tag: String(tag |> string())
+		attrs: attrs.'class' := classes |> map(String)
+		events: events
+		children: children |> with map() fn(child) if type(child) {
+			:string -> String(child)
+			_ -> child
+		}
+	}
+}
+
+fn Renderer(root) {
+	if type(root) {
+		:string -> root <- document.querySelector(root)
+	}
+
+	render := window.Torus.render
+	initialDOM := h(:div)
+	node := render(?, ?, initialDOM)
+	root.appendChild(node)
+
+	self := {
+		node: node
+		prev: initialDOM
+		update: fn update(jdom) {
+			self.node := render(self.node, self.prev, jdom)
+			self.prev := jdom
+			self.node
+		}
+	}
+}
+

@@ -1,0 +1,117 @@
+// TODO: document this script and the fact that it's quite hacky
+
+std := import('std')
+str := import('str')
+fmt := import('fmt')
+json := import('json')
+fs := import('fs')
+api := import('../src/api')
+
+ModelsFile := './models.json'
+Models := [
+	'AlphaDogfight'
+	'AutoCruise'
+	'AutoProfit'
+	'BeatlesAI'
+	'BlackPink'
+	'DirectDNA'
+	'DoctorStrange'
+	'ElonBot'
+	'FarmAnimalBERT'
+	'FiveSquare'
+	'GPT-NSFW'
+	'HackerNewsReplyGuy'
+	'MemeBERT'
+	'MobileViz'
+	'MozartNet'
+	'Nuggets McNuggetMaster'
+	'Occam\'s Razor'
+	'OpenSteakhouse'
+	'OpenTelescopic'
+	'RobinhoodNet'
+	'SafeAGI'
+	'Skynet'
+	'SpeakEasy'
+	'SpotifAI'
+	'SuperHEDGE'
+	'SuperLogger'
+	'Syntactica'
+	'Timelord'
+	'TinderSwindler'
+	'UltraTLDR'
+	'WarpNav'
+	'Whispernet'
+]
+
+modelData := if existing := fs.readFile(ModelsFile) {
+	? -> []
+	_ -> if parsed := existing |> json.parse() {
+		:error -> []
+		_ -> parsed
+	}
+}
+existingModelNames := modelData |> std.map(:name)
+
+fn panic(msg) {
+	std.println('[error] ' + msg)
+	exit(1)
+}
+
+fn iter(i) if i {
+	len(Models) -> with fs.writeFile(ModelsFile, json.serialize(modelData)) fn(res) if res {
+		? -> std.println('Could not write file.')
+		_ -> std.println('Models file updated.')
+	}
+	_ -> if existingModelNames |> std.contains?(modelName := Models.(i)) {
+		true -> {
+			std.println(modelName + ' already exists, moving on...')
+			iter(i + 1)
+		}
+		_ -> {
+			std.println(modelName + ' generating...')
+
+			// model
+			prompt := fmt.format(
+				'Proceedings of Deep Learning Advancements Conference, list of accepted deep learning models
+
+1. [StyleGAN] StyleGAN is a generative adversarial network for style transfer between artworks. It uses a traditional GAN architecture and is trained on a dataset of 150,000 traditional and modern art. StyleGAN shows improved style transfer performance while reducing computational complexity.
+2. [GPT-2] GPT-2 is a decoder-only transformer model trained on WebText, OpenAI\'s proprietary clean text corpus based on Wikipedia, Google News, Reddit, and others comprising a 2TB dataset for autoregressive training. GPT-2 demonstrates state-of-the-art performance on several language modeling and conversational tasks.
+3. [{{0}}] {{0}}'
+				modelName
+			)
+
+			with api.generate(prompt, '\n', 150) fn(completion) if completion {
+				? -> panic('generation failed. prompt: ' + prompt)
+				_ -> {
+					modelDescription := modelName + completion
+
+					// usage
+					prompt := fmt.format(
+						'{{0}}
+
+Let\'s use this model. The basic use case takes only a few lines of Python to run the inference. Here are the first few lines.
+
+```python'
+						modelDescription
+					)
+
+					with api.generate(prompt, '``', 200) fn(completion) if completion {
+						? -> panic('generation failed. prompt: ' + prompt)
+						_ -> {
+							modelUsage := completion |> str.trim()
+
+							modelData << {
+								name: modelName
+								defn: modelDescription
+								usage: modelUsage
+							}
+							iter(i + 1)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+iter(0)
+

@@ -1,0 +1,229 @@
+{
+	println: println
+	default: default
+	map: map
+	merge: merge
+} := import('std')
+{
+	trim: trim
+	split: split
+} := import('str')
+fmt := import('fmt')
+json := import('json')
+random := import('random')
+{
+	Renderer: Renderer
+	h: h
+} := import('../lib/torus.js')
+
+SiteName := 'This AI Does Not Exist'
+
+DefaultName := PregeneratedModel.name
+
+State := {
+	loading?: false
+	name: DefaultName
+	defn: PregeneratedModel.defn
+	usage: PregeneratedModel.usage
+	permalinkCopied: false
+}
+
+fn sig(o) {
+	json.serialize(o) |> encodeURIComponent() |> btoa()
+}
+
+fn unsig(s) {
+	s |> atob() |> decodeURIComponent() |> json.parse()
+}
+
+fn fetchText(url, body, withRespText) {
+	fn handleError(err) {
+		println(String(err))
+		State.loading? := false
+		render()
+	}
+
+	fetch(url, {
+		method: 'POST'
+		body: body
+	}).then(
+		fn(resp) if resp.status {
+			200 -> resp.text().then(withRespText)
+			_ -> with resp.text().then() fn(respText) {
+				handleError(new(Error, respText))
+			}
+		}
+		handleError
+	)
+}
+
+fn generateModel {
+	name := State.name |> trim()
+	if name != '' & !State.loading? -> {
+		State.loading? := true
+		render()
+
+		with fetchText('/generate/model', name) fn(defn) {
+			State.defn := defn
+			render()
+
+			with fetchText('/generate/usage', defn) fn(usage) {
+				State.loading? := false
+				State.usage := usage
+				render()
+
+				history.replaceState(?, ?, linkifyCurrent())
+				document.title := fmt.format('{{0}} | {{1}}', name, SiteName)
+			}
+		}
+	}
+}
+
+fn linkifyCurrent {
+	url := new(URL, location.href)
+	url.pathname := fmt.format('/model/{{0}}/{{1}}'
+		State.name
+		sig({ defn: State.defn, usage: State.usage }))
+	String(url)
+}
+
+fn enableWriteYourOwn {
+	// TODO: why this class?
+	document.body.classList.add('write-your-own')
+}
+
+CachedSyntaxHighlightedKey := ''
+CachedSyntaxHighlightedEl := document.createElement('span')
+fn syntaxHighlight(code) if code {
+	CachedSyntaxHighlightedKey -> CachedSyntaxHighlightedEl
+	_ -> {
+		CachedSyntaxHighlightedKey <- code
+		CachedSyntaxHighlightedEl <- document.createElement('span')
+		CachedSyntaxHighlightedEl.innerHTML := hljs.highlight(String(code), { language: String('python') }).value
+	}
+}
+
+r := Renderer('#root')
+
+fn Link(text, href) h(:a, [], { href: href, target: '_blank' }, [text])
+
+fn render {
+	with r.update() h(:div, ['app'], [
+		h(:header, [], [
+			h(:a, ['logo'], {
+				href: '/'
+			}, [SiteName])
+			Link('about', 'https://github.com/thesephist/modelexicon')
+		])
+		h(:main, [], [
+			h(:div, ['model-name'], [
+				h(:input, ['model-name-input'], {
+					value: State.name
+					placeholder: DefaultName
+				}, {
+					input: fn(evt) {
+						enableWriteYourOwn()
+						State.name := evt.target.value
+						render()
+					}
+					keydown: fn(evt) if evt.key {
+						'Enter' -> {
+							evt.preventDefault()
+							generateModel()
+						}
+					}
+				}, [])
+				if State.name |> trim() != '' -> {
+					h(:button, ['model-name-submit'], {
+						title: 'Generate this model'
+						disabled: State.loading?
+					}, {
+						click: fn {
+							generateModel()
+						}
+					}, ['Go!'])
+				}
+			])
+			h(:div, ['controls'], [
+				h(:button, [], { title: 'Generate another AI' }, {
+					click: fn {
+						window.location.href := '/'
+					}
+				}, ['Next'])
+				' · '
+				h(:button, [], { title: 'Enter your own AI name' }, {
+					click: fn {
+						nameInput := document.querySelector('input.model-name-input')
+						nameInput.focus()
+						nameInput.setSelectionRange(0, len(nameInput.value))
+					}
+				}, ['Try your own'])
+				' · '
+				h(:button, [], { title: 'Copy a link to this AI' }, {
+					click: fn {
+						with navigator.clipboard.writeText(linkifyCurrent()).then() fn {
+							State.permalinkCopied := true
+							render()
+							with wait(1.5) fn {
+								State.permalinkCopied := false
+								render()
+							}
+						}
+					}
+				}, [
+					if State.permalinkCopied {
+						true -> 'Copied!'
+						_ -> 'Copy link'
+					}
+				])
+			])
+			h(:div, ['model-defn'], [
+				if State.defn {
+					? -> 'Generating description ...'
+					_ -> State.defn
+				}
+			])
+			h(:div, ['model-usage'], [
+				h(:h2, [], ['Usage'])
+				h(:pre, ['model-usage-pre'], [
+					h(:code, ['model-usage-code'], [
+						if State.usage {
+							? -> syntaxHighlight('# generating usage ...')
+							_ -> syntaxHighlight(State.usage)
+						}
+					])
+				])
+			])
+		])
+		h(:footer, [], [
+			Link(SiteName, 'https://github.com/thesephist/modelexicon')
+			' is a project by '
+			Link('Linus', 'https://thesephist.com')
+			' built with '
+			Link('Oak', 'https://oaklang.org')
+			' and '
+			Link('Torus', 'https://github.com/thesephist/torus')
+			'.'
+		])
+	])
+}
+
+// load potential state in link
+pathname := new(URL, location.href).pathname
+[_, _, modelName, modelMeta] := pathname |> split('/')
+if modelName != ? & modelMeta != ? {
+	true -> {
+		DefaultName <- modelName |> decodeURIComponent()
+		State.name := DefaultName
+		document.title := fmt.format('{{0}} | {{1}}', State.name, SiteName)
+		State |> merge(modelMeta |> decodeURIComponent() |> unsig())
+	}
+	_ -> {
+		history.replaceState(?, ?, linkifyCurrent())
+		document.title := fmt.format('{{0}} | {{1}}', State.name, SiteName)
+	}
+}
+
+render()
+if State.defn = ? -> generateModel()
+

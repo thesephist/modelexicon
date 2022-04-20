@@ -1,0 +1,88 @@
+// uniform interface to Calamity and Huggingface inference APIs
+
+{
+	println: println
+	first: first
+	slice: slice
+} := import('std')
+{
+	cut: cut
+	contains?: strContains?
+} := import('str')
+json := import('json')
+config := import('../config')
+
+fn calamity(prompt, eos, maxTokens, withCompletion) {
+	with req({
+		method: 'POST'
+		url: config.CalamityURL
+		headers: { Authorization: 'Basic ' << config.CalamityToken }
+		body: json.serialize({
+			text: prompt
+			tokens: maxTokens
+			n: 1
+			eos: eos
+		})
+	}) fn(evt) if evt.type = :resp & evt.resp.status = 200 {
+		false -> withCompletion(?)
+		_ -> {
+			resp := json.parse(evt.resp.body).0 |>
+				slice(len(prompt)) |>
+				cut(eos) |>
+				first()
+			withCompletion(resp)
+		}
+	}
+}
+
+HuggingfaceIterTokens := 50
+
+fn huggingface(prompt, eos, maxTokens, withCompletion) {
+	generated := ''
+
+	fn huggingface_iter(remainingTokens) {
+		with req({
+			method: 'POST'
+			url: config.HuggingfaceURL
+			headers: { Authorization: 'Bearer ' << config.HuggingfaceToken }
+			body: json.serialize({
+				inputs: prompt + generated
+				parameters: {
+					top_p: 0.75
+					temperature: 0.9
+					max_new_tokens: HuggingfaceIterTokens
+					num_return_sequences: 1
+					do_sample: true
+					return_full_text: false
+				}
+				options: {
+					use_gpu: true
+					wait_for_model: true
+				}
+			})
+		}) fn(evt) if evt.type = :resp & evt.resp.status = 200 {
+			false -> {
+				println(evt)
+				withCompletion(?)
+			}
+			_ -> {
+				resp := json.parse(evt.resp.body).(0).generated_text
+				if {
+					resp |> strContains?(eos)
+					remainingTokens < HuggingfaceIterTokens -> withCompletion(generated + resp |> cut(eos) |> first())
+					_ -> {
+						generated <- generated + resp
+						huggingface_iter(remainingTokens - HuggingfaceIterTokens)
+					}
+				}
+			}
+		}
+	}
+
+	huggingface_iter(maxTokens)
+}
+
+// set `generate` to the default generator
+generate := huggingface
+generate := calamity
+

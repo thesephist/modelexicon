@@ -1,0 +1,121 @@
+// modelexicon makes up model ideas
+
+std := import('std')
+str := import('str')
+fmt := import('fmt')
+json := import('json')
+fs := import('fs')
+path := import('path')
+http := import('http')
+api := import('api')
+random := import('random')
+
+Port := 9992
+StaticDir := './static'
+MaxCodeLines := 24
+PregeneratedModelsFile := './models.json'
+
+PregeneratedModels := {
+	modelsByName := {}
+	fs.readFile(PregeneratedModelsFile) |> json.parse() |> with std.each() fn(model) {
+		modelsByName.(model.name) := model
+	}
+	modelsByName
+}
+
+server := http.Server()
+
+fn err(msg) {
+	status: 500
+	headers: { 'Content-Type': http.MimeTypes.txt }
+	body: msg
+}
+
+fn serveIndex(end) with fs.readFile(path.join(StaticDir, 'index.html')) fn(file) if file {
+	? -> end(http.NotFound)
+	_ -> end({
+		status: 200
+		headers: { 'Content-Type': http.MimeTypes.html }
+		body: file |> fmt.format({
+			pregenerated_model: std.values(PregeneratedModels) |> random.choice() |> json.serialize()
+		})
+	})
+}
+
+with server.route('/pregenerated') fn(params) fn(req, end) if req.method {
+	'GET' -> {
+		model := std.values(PregeneratedModels) |> random.choice()
+		end({
+			status: 200
+			headers: { 'Content-Type': http.MimeTypes.json }
+			body: json.serialize(model)
+		})
+	}
+	_ -> end(http.MethodNotAllowed)
+}
+
+with server.route('/generate/model') fn(params) fn(request, end) if request.method {
+	'POST' -> {
+		modelName := request.body |> str.trim()
+		prompt := fmt.format(
+			'Proceedings of Deep Learning Advancements Conference, list of accepted deep learning models
+
+1. [StyleGAN] StyleGAN is a generative adversarial network for style transfer between artworks. It uses a traditional GAN architecture and is trained on a dataset of 150,000 traditional and modern art. StyleGAN shows improved style transfer performance while reducing computational complexity.
+2. [GPT-2] GPT-2 is a decoder-only transformer model trained on WebText, OpenAI\'s proprietary clean text corpus based on Wikipedia, Google News, Reddit, and others comprising a 2TB dataset for autoregressive training. GPT-2 demonstrates state-of-the-art performance on several language modeling and conversational tasks.
+3. [{{0}}] {{0}}'
+			modelName
+		)
+
+		with api.generate(prompt, '\n', 150) fn(completion) if completion {
+			? -> end(err('could not generate description'))
+			_ -> end({
+				status: 200
+				headers: { 'Content-Type': http.MimeTypes.txt }
+				body: modelName + completion
+			})
+		}
+	}
+	_ -> end(http.MethodNotAllowed)
+}
+
+with server.route('/generate/usage') fn(params) fn(request, end) if request.method {
+	'POST' -> {
+		modelDescription := request.body |> str.trim()
+		prompt := fmt.format(
+			'{{0}}
+
+Let\'s use this model. The basic use case takes only a few lines of Python to run the inference. Here are the first few lines.
+
+```python'
+			modelDescription
+		)
+
+		with api.generate(prompt, '``', 200) fn(completion) if completion {
+			? -> end(err('could not generate usage'))
+			_ -> end({
+				status: 200
+				headers: { 'Content-Type': http.MimeTypes.txt }
+				body: completion |> str.trim()
+			})
+		}
+	}
+	_ -> end(http.MethodNotAllowed)
+}
+
+with server.route('/model/:modelName/:modelMeta') fn(params) fn(req, end) if req.method {
+	'GET' -> serveIndex(end)
+	_ -> end(http.MethodNotAllowed)
+}
+
+with server.route('/*staticPath') fn(params) {
+	http.handleStatic(path.join(StaticDir, params.staticPath))
+}
+
+with server.route('/') fn(params) fn(req, end) if req.method {
+	'GET' -> serveIndex(end)
+	_ -> end(http.MethodNotAllowed)
+}
+
+server.start(Port)
+fmt.printf('Modelexicon running at port {{ 0 }}', Port)
+
