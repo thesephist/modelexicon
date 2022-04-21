@@ -1,0 +1,194 @@
+html,
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    --primary-bg: #fdfeff;
+    --primary-text: #111111;
+    --secondary-bg: #eeeef3;
+    --secondary-text: #9b9b9b;
+    --hover-bg: #dde1e5;
+    --active-bg: #cdcfd2;
+    --accent: #2d4fe8;
+	--accenter: #001883;
+	--shadow-soft: rgba(0, 0, 0, .15);
+    --shadow-hard: rgba(0, 0, 0, .36);
+    --font-mono: 'JetBrains Mono', 'Inconsolata', monospace;
+
+	color: var(--primary-text);
+	background: var(--primary-bg);
+}
+
+input::placeholder {
+	color: var(--secondary-text);
+}
+
+pre,
+code {
+    font-family: var(--font-mono);
+}
+
+#root {
+    width: 100%;
+}
+
+.app {
+    width: calc(100% - 32px);
+    max-width: 68ch;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    margin-bottom: 16px;
+}
+
+header a {
+	color: inherit;
+	text-decoration: none;
+}
+
+header a:hover {
+	text-decoration: underline;
+}
+
+a.logo {
+    font-weight: bold;
+    color: var(--primary-text);
+    text-decoration: none;
+}
+
+a.logo:hover {
+    text-decoration: underline;
+}
+
+.model-name {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+    margin: 8px 0;
+}
+
+input.model-name-input {
+    font-family: inherit;
+    font-size: 2em;
+    border: 0;
+    background: transparent;
+    padding: 8px 0;
+    width: 100%;
+    font-weight: bold;
+}
+
+input.model-name-input:focus {
+    outline: 0;
+}
+
+button.model-name-submit {
+	display: none;
+    font-size: inherit;
+    height: calc(2rem + 8px);
+    width: calc(2rem + 24px);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 6px;
+	color: var(--primary-bg);
+	background: var(--accent);
+	border-bottom: 5px solid var(--accenter);
+	box-shadow: 0 4px 8px var(--shadow-hard);
+	transition: transform .2s, box-shadow .2s;
+}
+
+body.write-your-own button.model-name-submit {
+	display: block;
+}
+
+button.model-name-submit[disabled] {
+    cursor: no-drop;
+	background: var(--active-bg);
+	border-bottom: 5px solid var(--secondary-text);
+}
+
+button.model-name-submit:not([disabled]):focus,
+button.model-name-submit:not([disabled]):hover {
+	outline: none;
+	transform: translate(0, -2px);
+	box-shadow: 0 6px 12px -1px var(--shadow-hard);
+}
+
+button.model-name-submit:not([disabled]):active {
+	transform: translate(0, 2px);
+	box-shadow: 0 0 6px var(--shadow-hard);
+}
+
+.controls {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 16px;
+}
+
+.controls button {
+    color: inherit;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 0;
+    color: var(--accent);
+}
+
+.controls button:hover {
+    text-decoration: underline;
+}
+
+.model-defn {
+    line-height: 1.5em;
+}
+
+.model-usage h2 {
+    font-weight: normal;
+    font-size: 1.5em;
+}
+
+.model-usage pre,
+.model-usage code {
+    background: var(--secondary-bg);
+    font-size: 1em;
+    font-family: var(--font-mono);
+    word-break: initial;
+}
+
+.model-usage pre {
+    border-radius: 6px;
+    box-sizing: border-box;
+    padding: 1em;
+    overflow-x: auto;
+}
+
+footer {
+	color: var(--secondary-text);
+	margin: 32px 0;
+	line-height: 1.5em;
+}
+
+footer a {
+	color: inherit;
+	text-decoration: underline;
+}
+
+footer a:hover {
+	color: var(--accent);
+}
+
