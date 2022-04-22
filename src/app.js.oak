@@ -18,11 +18,9 @@ random := import('random')
 
 SiteName := 'This AI Does Not Exist'
 
-DefaultName := PregeneratedModel.name
-
 State := {
 	loading?: false
-	name: DefaultName
+	name: PregeneratedModel.name
 	defn: PregeneratedModel.defn
 	usage: PregeneratedModel.usage
 	permalinkCopied: false
@@ -107,8 +105,14 @@ fn syntaxHighlight(code) if code {
 
 r := Renderer('#root')
 
-fn Loading {
-	h(:span, ['loading'], [])
+fn Loading(margins) {
+	margin := string(margins) + 'px'
+	h(:div, ['loading'], {
+		style: {
+			marginTop: margin
+			marginBottom: margin
+		}
+	}, [])
 }
 
 fn Link(text, href) h(:a, [], { href: href, target: '_blank' }, [text])
@@ -125,7 +129,7 @@ fn render {
 			h(:div, ['model-name'], [
 				h(:input, ['model-name-input'], {
 					value: State.name
-					placeholder: DefaultName
+					placeholder: 'Name a model'
 				}, {
 					input: fn(evt) {
 						enableWriteYourOwn()
@@ -159,9 +163,12 @@ fn render {
 				' · '
 				h(:button, [], { title: 'Enter your own AI name' }, {
 					click: fn {
+						State.name := ''
+						render()
+
 						nameInput := document.querySelector('input.model-name-input')
 						nameInput.focus()
-						nameInput.setSelectionRange(0, len(nameInput.value))
+						nameInput.setSelectionRange(0, 0)
 					}
 				}, ['Try your own'])
 				' · '
@@ -185,7 +192,7 @@ fn render {
 			])
 			h(:div, ['model-defn'], [
 				if State.defn {
-					? -> Loading()
+					? -> Loading(40)
 					_ -> State.defn
 				}
 			])
@@ -194,7 +201,7 @@ fn render {
 				h(:pre, ['model-usage-pre'], [
 					h(:code, ['model-usage-code'], [
 						if State.usage {
-							? -> Loading()
+							? -> Loading(64)
 							_ -> syntaxHighlight(State.usage)
 						}
 					])
@@ -219,8 +226,7 @@ pathname := new(URL, location.href).pathname
 [_, _, modelName, modelMeta] := pathname |> split('/')
 if modelName != ? & modelMeta != ? {
 	true -> {
-		DefaultName <- modelName |> decodeURIComponent()
-		State.name := DefaultName
+		State.name := modelName |> decodeURIComponent()
 		document.title := fmt.format('{{0}} | {{1}}', State.name, SiteName)
 		State |> merge(modelMeta |> decodeURIComponent() |> unsig())
 	}

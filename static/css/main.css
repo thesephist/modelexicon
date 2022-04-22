@@ -192,3 +192,36 @@ footer a:hover {
 	color: var(--accent);
 }
 
+.loading {
+    width: calc(100% - 32px);
+    max-width: 320px;
+    flex-grow: 1;
+    margin: 18px auto;
+    height: 3px;
+    position: relative;
+    background: var(--secondary-text);
+    overflow: hidden;
+}
+
+@keyframes slider {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.loading::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 60%;
+    padding-right: 40%;
+    background: var(--primary-text);
+    position: relative;
+    top: 0;
+    left: 0;
+    animation: slider 8s linear infinite;
+}
+
