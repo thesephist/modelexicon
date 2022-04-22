@@ -61,6 +61,8 @@ fn generateModel {
 	name := State.name |> trim()
 	if name != '' & !State.loading? -> {
 		State.loading? := true
+		State.defn := ?
+		State.usage := ?
 		render()
 
 		with fetchText('/generate/model', name) fn(defn) {
@@ -104,6 +106,10 @@ fn syntaxHighlight(code) if code {
 }
 
 r := Renderer('#root')
+
+fn Loading {
+	h(:span, ['loading'], [])
+}
 
 fn Link(text, href) h(:a, [], { href: href, target: '_blank' }, [text])
 
@@ -179,7 +185,7 @@ fn render {
 			])
 			h(:div, ['model-defn'], [
 				if State.defn {
-					? -> 'Generating description ...'
+					? -> Loading()
 					_ -> State.defn
 				}
 			])
@@ -188,7 +194,7 @@ fn render {
 				h(:pre, ['model-usage-pre'], [
 					h(:code, ['model-usage-code'], [
 						if State.usage {
-							? -> syntaxHighlight('# generating usage ...')
+							? -> Loading()
 							_ -> syntaxHighlight(State.usage)
 						}
 					])
