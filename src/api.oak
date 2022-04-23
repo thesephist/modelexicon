@@ -83,6 +83,8 @@ fn huggingface(prompt, eos, maxTokens, withCompletion) {
 }
 
 // set `generate` to the default generator
-generate := huggingface
-generate := calamity
+generate := if config.APIProvider {
+	:calamity -> calamity
+	:huggingface -> huggingface
+}
 
