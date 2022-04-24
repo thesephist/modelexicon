@@ -8,20 +8,15 @@ fs := import('fs')
 path := import('path')
 http := import('http')
 api := import('api')
-random := import('random')
 
 Port := 9992
 StaticDir := './static'
 MaxCodeLines := 24
+MaxModelNameLen := 64
+MaxModelDescriptionLen := 1000
 PregeneratedModelsFile := './models.json'
-
-PregeneratedModels := {
-	modelsByName := {}
-	fs.readFile(PregeneratedModelsFile) |> json.parse() |> with std.each() fn(model) {
-		modelsByName.(model.name) := model
-	}
-	modelsByName
-}
+PregeneratedRoundRobinIndex := 0
+PregeneratedModels := fs.readFile(PregeneratedModelsFile) |> json.parse()
 
 server := http.Server()
 
@@ -31,32 +26,26 @@ fn err(msg) {
 	body: msg
 }
 
+fn nextPregeneratedModel {
+	model := PregeneratedModels.(PregeneratedRoundRobinIndex)
+	PregeneratedRoundRobinIndex <- (PregeneratedRoundRobinIndex + 1) % len(PregeneratedModels)
+	model
+}
+
 fn serveIndex(end) with fs.readFile(path.join(StaticDir, 'index.html')) fn(file) if file {
 	? -> end(http.NotFound)
 	_ -> end({
 		status: 200
 		headers: { 'Content-Type': http.MimeTypes.html }
 		body: file |> fmt.format({
-			pregenerated_model: std.values(PregeneratedModels) |> random.choice() |> json.serialize()
+			pregenerated_model: nextPregeneratedModel() |> json.serialize()
 		})
 	})
 }
 
-with server.route('/pregenerated') fn(params) fn(req, end) if req.method {
-	'GET' -> {
-		model := std.values(PregeneratedModels) |> random.choice()
-		end({
-			status: 200
-			headers: { 'Content-Type': http.MimeTypes.json }
-			body: json.serialize(model)
-		})
-	}
-	_ -> end(http.MethodNotAllowed)
-}
-
 with server.route('/generate/model') fn(params) fn(request, end) if request.method {
 	'POST' -> {
-		modelName := request.body |> str.trim()
+		modelName := request.body |> str.trim() |> std.take(MaxModelNameLen)
 		prompt := fmt.format(
 			'Proceedings of Deep Learning Advancements Conference, list of accepted deep learning models
 
@@ -80,7 +69,7 @@ with server.route('/generate/model') fn(params) fn(request, end) if request.meth
 
 with server.route('/generate/usage') fn(params) fn(request, end) if request.method {
 	'POST' -> {
-		modelDescription := request.body |> str.trim()
+		modelDescription := request.body |> str.trim() |> std.take(MaxModelDescriptionLen)
 		prompt := fmt.format(
 			'{{0}}
 
