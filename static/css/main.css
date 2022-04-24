@@ -28,6 +28,7 @@ input::placeholder {
 pre,
 code {
     font-family: var(--font-mono);
+    tab-size: 4;
 }
 
 #root {
