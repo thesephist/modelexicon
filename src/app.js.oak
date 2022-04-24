@@ -2,6 +2,7 @@
 	println: println
 	default: default
 	map: map
+	take: take
 	merge: merge
 } := import('std')
 {
@@ -17,6 +18,7 @@ random := import('random')
 } := import('../lib/torus.js')
 
 SiteName := 'This AI Does Not Exist'
+MaxModelNameLen := 64
 
 State := {
 	loading?: false
@@ -133,7 +135,7 @@ fn render {
 				}, {
 					input: fn(evt) {
 						enableWriteYourOwn()
-						State.name := evt.target.value
+						State.name := evt.target.value |> take(MaxModelNameLen)
 						render()
 					}
 					keydown: fn(evt) if evt.key {
@@ -210,7 +212,9 @@ fn render {
 		])
 		h(:footer, [], [
 			Link(SiteName, 'https://github.com/thesephist/modelexicon')
-			' is a project by '
+			' generates realistic descriptions and code snippets of machine
+			learning models given a name for one that doesn\'t exist. It\'s a
+			project by '
 			Link('Linus', 'https://thesephist.com')
 			' built with '
 			Link('Oak', 'https://oaklang.org')
@@ -237,5 +241,4 @@ if modelName != ? & modelMeta != ? {
 }
 
 render()
-if State.defn = ? -> generateModel()
 
