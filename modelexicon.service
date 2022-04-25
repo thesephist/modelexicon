@@ -1,0 +1,29 @@
+[Unit]
+Description=modelexicon
+ConditionPathExists=/home/modelexicon-user/go/bin/oak
+After=network.target
+
+[Service]
+Type=simple
+User=modelexicon-user
+LimitNOFILE=1024
+PermissionsStartOnly=true
+
+Restart=on-failure
+RestartSec=100ms
+StartLimitIntervalSec=60
+
+WorkingDirectory=/home/modelexicon-user/src/oak/www
+ExecStart=/home/modelexicon-user/go/bin/oak ./src/main.oak
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/modelexicon
+ExecStartPre=/bin/chown syslog:adm /var/log/modelexicon
+ExecStartPre=/bin/chmod 755 /var/log/modelexicon
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=modelexicon
+
+[Install]
+WantedBy=multi-user.target
