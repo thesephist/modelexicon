@@ -12,17 +12,17 @@ body {
     --hover-bg: #dde1e5;
     --active-bg: #cdcfd2;
     --accent: #2d4fe8;
-	--accenter: #001883;
-	--shadow-soft: rgba(0, 0, 0, .15);
+    --accenter: #001883;
+    --shadow-soft: rgba(0, 0, 0, .15);
     --shadow-hard: rgba(0, 0, 0, .36);
     --font-mono: 'JetBrains Mono', 'Inconsolata', monospace;
 
-	color: var(--primary-text);
-	background: var(--primary-bg);
+    color: var(--primary-text);
+    background: var(--primary-bg);
 }
 
 input::placeholder {
-	color: var(--secondary-text);
+    color: var(--secondary-text);
 }
 
 pre,
@@ -52,12 +52,12 @@ header {
 }
 
 header a {
-	color: inherit;
-	text-decoration: none;
+    color: inherit;
+    text-decoration: none;
 }
 
 header a:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
 
 a.logo {
@@ -71,11 +71,11 @@ a.logo:hover {
 }
 
 .model-name {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin: 8px 0;
 }
 
@@ -94,41 +94,41 @@ input.model-name-input:focus {
 }
 
 button.model-name-submit {
-	display: none;
+    display: none;
     font-size: inherit;
     height: calc(2rem + 8px);
     width: calc(2rem + 24px);
     border: 0;
     padding: 0;
     cursor: pointer;
-    border-radius: 6px;
-	color: var(--primary-bg);
-	background: var(--accent);
-	border-bottom: 5px solid var(--accenter);
-	box-shadow: 0 4px 8px var(--shadow-hard);
-	transition: transform .2s, box-shadow .2s;
+    border-radius: 8px;
+    color: var(--primary-bg);
+    background: var(--accent);
+    border-bottom: 5px solid var(--accenter);
+    box-shadow: 0 4px 8px var(--shadow-hard);
+    transition: transform .2s, box-shadow .2s;
 }
 
 body.write-your-own button.model-name-submit {
-	display: block;
+    display: block;
 }
 
 button.model-name-submit[disabled] {
     cursor: no-drop;
-	background: var(--active-bg);
-	border-bottom: 5px solid var(--secondary-text);
+    background: var(--active-bg);
+    border-bottom: 5px solid var(--secondary-text);
 }
 
 button.model-name-submit:not([disabled]):focus,
 button.model-name-submit:not([disabled]):hover {
-	outline: none;
-	transform: translate(0, -2px);
-	box-shadow: 0 6px 12px -1px var(--shadow-hard);
+    outline: none;
+    transform: translate(0, -2px);
+    box-shadow: 0 6px 12px -1px var(--shadow-hard);
 }
 
 button.model-name-submit:not([disabled]):active {
-	transform: translate(0, 2px);
-	box-shadow: 0 0 6px var(--shadow-hard);
+    transform: translate(0, 2px);
+    box-shadow: 0 0 6px var(--shadow-hard);
 }
 
 .controls {
@@ -179,18 +179,18 @@ button.model-name-submit:not([disabled]):active {
 }
 
 footer {
-	color: var(--secondary-text);
-	margin: 32px 0;
-	line-height: 1.5em;
+    color: var(--secondary-text);
+    margin: 32px 0;
+    line-height: 1.5em;
 }
 
 footer a {
-	color: inherit;
-	text-decoration: underline;
+    color: inherit;
+    text-decoration: underline;
 }
 
 footer a:hover {
-	color: var(--accent);
+    color: var(--accent);
 }
 
 .loading {
@@ -224,5 +224,23 @@ footer a:hover {
     top: 0;
     left: 0;
     animation: slider 8s linear infinite;
+}
+
+.err-message {
+    position: fixed;
+    top: 32px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    color: var(--primary-bg);
+    border-radius: 8px;
+    border-radius: 5px;
+    background: #dc4949;
+    border-bottom: 5px solid #980707;
+    width: calc(100% - 52px);
+    box-sizing: border-box;
+    max-width: 40ch;
+    padding: 8px 12px;
+    line-height: 1.4em;
+    box-shadow: 0 8px 16px var(--shadow-soft);
 }
 

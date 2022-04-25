@@ -21,6 +21,7 @@ SiteName := 'This AI Does Not Exist'
 MaxModelNameLen := 64
 
 State := {
+	err: ?
 	loading?: false
 	name: PregeneratedModel.name
 	defn: PregeneratedModel.defn
@@ -38,7 +39,7 @@ fn unsig(s) {
 
 fn fetchText(url, body, withRespText) {
 	fn handleError(err) {
-		println(String(err))
+		State.err := 'Could not generate text: ' + String(err)
 		State.loading? := false
 		render()
 	}
@@ -60,6 +61,7 @@ fn fetchText(url, body, withRespText) {
 fn generateModel {
 	name := State.name |> trim()
 	if name != '' & !State.loading? -> {
+		State.err := ?
 		State.loading? := true
 		State.defn := ?
 		State.usage := ?
@@ -221,6 +223,9 @@ fn render {
 			' and '
 			Link('Torus', 'https://github.com/thesephist/torus')
 			'.'
+		])
+		if State.err != ? -> h(:div, ['err-message'], [
+			State.err
 		])
 	])
 }
