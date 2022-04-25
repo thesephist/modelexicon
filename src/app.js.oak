@@ -235,7 +235,9 @@ if modelName != ? & modelMeta != ? {
 		State |> merge(modelMeta |> decodeURIComponent() |> unsig())
 	}
 	_ -> {
-		history.replaceState(?, ?, linkifyCurrent())
+		// NOTE: we intentionally do not update the URL with linkifyCurrent()
+		// so first-visit users can freely share the short generic URL instead
+		// of a deep link
 		document.title := fmt.format('{{0}} | {{1}}', State.name, SiteName)
 	}
 }

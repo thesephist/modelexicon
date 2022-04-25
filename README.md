@@ -2,7 +2,7 @@
 
 [**This AI Does Not Exist**](https://thisaidoesnotexist.com/) generates realistic descriptions of made-up machine learning models. _Modelexicon_ is what it was called before I bought the domain.
 
-![A screenshot of the app running on the web](assets/screenshot.png)
+![A screenshot of the app running on the web](static/img/screenshot.png)
 
 This AI Does Not Exist is built with [Oak](https://oaklang.org) and [Torus](https://github.com/thesephist/torus). EleutherAI's [GPT-J-6B](https://github.com/kingoflolz/mesh-transformer-jax/#gpt-j-6b) is used for text and code generation at time of writing, though this may change as state-of-the-art models improve.
 
