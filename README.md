@@ -11,7 +11,7 @@ This AI Does Not Exist is built with [Oak](https://oaklang.org) and [Torus](http
 At the core of **This AI Does Not Exist** are two text generation pipelines:
 
 - One takes a "model name" and generates a brief description in academic-sounding prose
-- Another takes that model description and writes a Python code snippet "using" the described model
+- Another takes that model description and writes a Python code snippet that demonstrates how to "use" the described model
 
 These are both generated using a language model called [GPT-J-6B](https://github.com/kingoflolz/mesh-transformer-jax/#gpt-j-6b), which sits somewhere between the well-known GPT-2 and GPT-3 models in terms of performance.
 
@@ -20,14 +20,14 @@ When you simply open `thisaidoesnotexist.com`, the model names you'll see are ha
 - Most importantly, **this saves compute costs**. Most users are statistically going to click through the first few sample/pre-generated models, and try one or two of their own model ideas. Some visitors may even bounce after having seen only pre-generated examples. I expect pre-generated model data to save me 2-4x on API bills, which — my goodness — language models are expensive to run!
 - Manually curating the first few samples ensures the first encounter visitors have with this project is at least of a certain baseline of quality and fun.
 
-The script in `scripts/pregenerate_models.oak` pre-generate this dataset into `models.json`, which the server round-robins through at runtime. Any user-entered model names are obviously routed to the right APIs for text generation.
+The script in `scripts/pregenerate_models.oak` pre-generates this dataset into `models.json`, which the server round-robins through at runtime on each request. Any user-entered model names are obviously routed to the right APIs for text generation.
 
 ## Development
 
 Running Modelexicon requires a `config.oak` configuration file, which currently includes API access information for text generation. There are two text generation backends supported:
 
 - [Huggingface Inference](https://huggingface.co/inference-api), which requires `HuggingfaceURL` set to the right model and `HuggingfaceToken` set to your API key.
-- My personal [private language model API](https://github.com/thesephist/calamity), which you probably can't use because you are not me. This requires setting `CalamityURL` to the API endpoint and `CalamityToken` to the app-specific API token I generate.
+- My personal [private language model API](https://github.com/thesephist/calamity), which you probably can't use because you are not me. This requires setting `CalamityURL` to the API endpoint and `CalamityToken` to the app-specific API token I generate for my projects.
 
 With these defined in `config.oak`, `oak src/main.oak` should start up the app.
 
