@@ -1,4 +1,15 @@
-// TODO: document this script and the fact that it's quite hacky
+// This script is not my proudest code, but it populates './models.json' with a
+// list of pre-generated data for hand-curated model names. I do this for two
+// reasons:
+//
+// 1. Most users and first-time visitors won't be entering in their own names,
+//    but instead browsing existing/randomly presented names. By having a
+//    pre-generated and cached list, we can save on expensive API calls.
+// 2. I can select for generated text that I like to go on the "landing" page.
+//
+// Most of this script's code is ripped from src/main.oak. If I want to add new
+// model names, I can just add names to the list (which is lexicographically
+// sorted because it's nice) and re-run the script.
 
 std := import('std')
 str := import('str')
