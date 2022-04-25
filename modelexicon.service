@@ -13,7 +13,7 @@ Restart=on-failure
 RestartSec=100ms
 StartLimitIntervalSec=60
 
-WorkingDirectory=/home/modelexicon-user/src/oak/www
+WorkingDirectory=/home/modelexicon-user/modelexicon
 ExecStart=/home/modelexicon-user/go/bin/oak ./src/main.oak
 
 # make sure log directory exists and owned by syslog
