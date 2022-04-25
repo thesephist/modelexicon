@@ -92,7 +92,12 @@ fn linkifyCurrent {
 }
 
 fn enableWriteYourOwn {
-	// TODO: why this class?
+	// this class name toggles visibility of the "Go!" button in the UI, which
+	// signals that the title/name field is editable. I wanted to have the
+	// default UI feel "non-editable", and have the editability "kick in" when
+	// the user clicks on the right button. This is for a variety of reasons
+	// (mainly to prevent rampant use of the "write your own" feature so I save
+	// a bit on API bills).
 	document.body.classList.add('write-your-own')
 }
 
